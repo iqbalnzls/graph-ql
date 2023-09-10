@@ -6,19 +6,71 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"sort"
+	"strings"
+	"time"
 
 	"github.com/iqbalnzls/graph-ql/graph/model"
 )
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+// CreateCharacter is the resolver for the createCharacter field.
+func (r *mutationResolver) CreateCharacter(ctx context.Context, input model.CreateCharacterRequest) (resp *model.CharacterResponse, err error) {
+	resp = &model.CharacterResponse{
+		ID:        input.ID,
+		Name:      input.Name,
+		CreatedAt: time.Now().Format(time.RFC3339),
+	}
+
+	if len(r.Resolver.CharacterStore) == 0 {
+		r.Resolver.CharacterStore = map[string]*model.CharacterResponse{
+			input.ID: resp,
+		}
+
+		return
+	}
+
+	r.Resolver.CharacterStore[input.ID] = resp
+
+	return
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+// FindByID is the resolver for the findByID field.
+func (r *queryResolver) FindByID(ctx context.Context, id string) (*model.CharacterResponse, error) {
+	d, ok := r.Resolver.CharacterStore[id]
+	if !ok {
+		return nil, errors.New("data not found")
+	}
+
+	return d, nil
+}
+
+// FindAll is the resolver for the findAll field.
+func (r *queryResolver) FindAll(ctx context.Context, sortByID string) ([]*model.CharacterResponse, error) {
+	if len(strings.TrimSpace(sortByID)) != 0 {
+		resp := make([]*model.CharacterResponse, 0)
+
+		for _, v := range r.Resolver.CharacterStore {
+			resp = append(resp, v)
+		}
+
+		switch sortByID {
+		case "ASC":
+			sort.Slice(resp, func(i, j int) bool {
+				return resp[i].ID < resp[j].ID
+			})
+		case "DESC":
+			sort.Slice(resp, func(i, j int) bool {
+				return resp[i].ID > resp[j].ID
+			})
+		default:
+			return nil, errors.New("invalid sorting value")
+		}
+
+		return resp, nil
+	}
+
+	return toCharacters(r.Resolver.CharacterStore), nil
 }
 
 // Mutation returns MutationResolver implementation.
