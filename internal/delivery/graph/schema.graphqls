@@ -14,10 +14,10 @@ input CreateCharacterRequest {
 }
 
 type Query {
-  findByID(id:ID!): CharacterResponse!
-  findAll(sortByID: String!): [CharacterResponse!]!
+  findByID(id:ID!): CharacterResponse
+  findAll(sortByID: String!): [CharacterResponse]
 }
 
 type Mutation {
-  createCharacter(input: CreateCharacterRequest!): CharacterResponse!
+  createCharacter(input: CreateCharacterRequest!): CharacterResponse
 }

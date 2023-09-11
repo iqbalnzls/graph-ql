@@ -1,6 +1,8 @@
 package graph
 
-import "github.com/iqbalnzls/graph-ql/graph/model"
+import (
+	"github.com/iqbalnzls/graph-ql/internal/delivery/graph/model"
+)
 
 func toCharacters(m map[string]*model.CharacterResponse) []*model.CharacterResponse {
 	characters := make([]*model.CharacterResponse, 0)

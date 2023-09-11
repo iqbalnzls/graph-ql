@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iqbalnzls/graph-ql/graph/model"
+	"github.com/iqbalnzls/graph-ql/internal/delivery/graph/model"
 )
 
 // CreateCharacter is the resolver for the createCharacter field.
