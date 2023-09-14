@@ -8,10 +8,10 @@ import (
 	"context"
 	"errors"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/iqbalnzls/graph-ql/internal/delivery/graph/model"
+	"github.com/iqbalnzls/graph-ql/internal/shared"
 )
 
 // CreateCharacter is the resolver for the createCharacter field.
@@ -46,31 +46,47 @@ func (r *queryResolver) FindByID(ctx context.Context, id string) (*model.Charact
 }
 
 // FindAll is the resolver for the findAll field.
-func (r *queryResolver) FindAll(ctx context.Context, sortByID string) ([]*model.CharacterResponse, error) {
-	if len(strings.TrimSpace(sortByID)) != 0 {
-		resp := make([]*model.CharacterResponse, 0)
+func (r *queryResolver) FindAll(ctx context.Context, sortByID *string) ([]*model.CharacterResponse, error) {
+	var input string
+	resp := make([]*model.CharacterResponse, 0)
 
-		for _, v := range r.Resolver.CharacterStore {
-			resp = append(resp, v)
-		}
-
-		switch sortByID {
-		case "ASC":
-			sort.Slice(resp, func(i, j int) bool {
-				return resp[i].ID < resp[j].ID
-			})
-		case "DESC":
-			sort.Slice(resp, func(i, j int) bool {
-				return resp[i].ID > resp[j].ID
-			})
-		default:
-			return nil, errors.New("invalid sorting value")
-		}
-
-		return resp, nil
+	input = shared.ASC.ToString()
+	if sortByID != nil {
+		input = *sortByID
 	}
 
-	return toCharacters(r.Resolver.CharacterStore), nil
+	for _, v := range r.Resolver.CharacterStore {
+		resp = append(resp, v)
+	}
+
+	switch input {
+	case shared.ASC.ToString():
+		sort.Slice(resp, func(i, j int) bool {
+			return resp[i].ID < resp[j].ID
+		})
+	case shared.DESC.ToString():
+		sort.Slice(resp, func(i, j int) bool {
+			return resp[i].ID > resp[j].ID
+		})
+	default:
+		return nil, errors.New("invalid sorting value")
+	}
+
+	return resp, nil
+}
+
+// FindByName is the resolver for the findByName field.
+func (r *queryResolver) FindByName(ctx context.Context, name string) (resp *model.CharacterResponse, err error) {
+	for _, v := range r.Resolver.CharacterStore {
+		if name == v.Name {
+			resp = v
+			return
+		}
+	}
+
+	err = errors.New("data not found")
+
+	return
 }
 
 // Mutation returns MutationResolver implementation.

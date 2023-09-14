@@ -8,13 +8,13 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"github.com/iqbalnzls/graph-ql/internal/delivery/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/iqbalnzls/graph-ql/internal/delivery/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -56,8 +56,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		FindAll  func(childComplexity int, sortByID string) int
-		FindByID func(childComplexity int, id string) int
+		FindAll    func(childComplexity int, sortByID *string) int
+		FindByID   func(childComplexity int, id string) int
+		FindByName func(childComplexity int, name string) int
 	}
 }
 
@@ -66,7 +67,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	FindByID(ctx context.Context, id string) (*model.CharacterResponse, error)
-	FindAll(ctx context.Context, sortByID string) ([]*model.CharacterResponse, error)
+	FindAll(ctx context.Context, sortByID *string) ([]*model.CharacterResponse, error)
+	FindByName(ctx context.Context, name string) (*model.CharacterResponse, error)
 }
 
 type executableSchema struct {
@@ -127,7 +129,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindAll(childComplexity, args["sortByID"].(string)), true
+		return e.complexity.Query.FindAll(childComplexity, args["sortByID"].(*string)), true
 
 	case "Query.findByID":
 		if e.complexity.Query.FindByID == nil {
@@ -140,6 +142,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindByID(childComplexity, args["id"].(string)), true
+
+	case "Query.findByName":
+		if e.complexity.Query.FindByName == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findByName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindByName(childComplexity, args["name"].(string)), true
 
 	}
 	return 0, false
@@ -272,7 +286,7 @@ func (ec *executionContext) field_Mutation_createCharacter_args(ctx context.Cont
 	var arg0 model.CreateCharacterRequest
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreateCharacterRequest2githubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCreateCharacterRequest(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateCharacterRequest2githubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCreateCharacterRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -299,10 +313,10 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_findAll_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
 	if tmp, ok := rawArgs["sortByID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortByID"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -323,6 +337,21 @@ func (ec *executionContext) field_Query_findByID_args(ctx context.Context, rawAr
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findByName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -521,7 +550,7 @@ func (ec *executionContext) _Mutation_createCharacter(ctx context.Context, field
 	}
 	res := resTmp.(*model.CharacterResponse)
 	fc.Result = res
-	return ec.marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCharacterResponse(ctx, field.Selections, res)
+	return ec.marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCharacterResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createCharacter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -581,7 +610,7 @@ func (ec *executionContext) _Query_findByID(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.CharacterResponse)
 	fc.Result = res
-	return ec.marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCharacterResponse(ctx, field.Selections, res)
+	return ec.marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCharacterResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_findByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -630,7 +659,7 @@ func (ec *executionContext) _Query_findAll(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindAll(rctx, fc.Args["sortByID"].(string))
+		return ec.resolvers.Query().FindAll(rctx, fc.Args["sortByID"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -641,7 +670,7 @@ func (ec *executionContext) _Query_findAll(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.([]*model.CharacterResponse)
 	fc.Result = res
-	return ec.marshalOCharacterResponse2ᚕᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCharacterResponse(ctx, field.Selections, res)
+	return ec.marshalOCharacterResponse2ᚕᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCharacterResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_findAll(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -670,6 +699,66 @@ func (ec *executionContext) fieldContext_Query_findAll(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_findAll_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_findByName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_findByName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindByName(rctx, fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CharacterResponse)
+	fc.Result = res
+	return ec.marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCharacterResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_findByName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CharacterResponse_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CharacterResponse_name(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_CharacterResponse_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CharacterResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_findByName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2776,6 +2865,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "findByName":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findByName(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -3148,7 +3256,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreateCharacterRequest2githubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCreateCharacterRequest(ctx context.Context, v interface{}) (model.CreateCharacterRequest, error) {
+func (ec *executionContext) unmarshalNCreateCharacterRequest2githubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCreateCharacterRequest(ctx context.Context, v interface{}) (model.CreateCharacterRequest, error) {
 	res, err := ec.unmarshalInputCreateCharacterRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3462,7 +3570,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOCharacterResponse2ᚕᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCharacterResponse(ctx context.Context, sel ast.SelectionSet, v []*model.CharacterResponse) graphql.Marshaler {
+func (ec *executionContext) marshalOCharacterResponse2ᚕᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCharacterResponse(ctx context.Context, sel ast.SelectionSet, v []*model.CharacterResponse) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3489,7 +3597,7 @@ func (ec *executionContext) marshalOCharacterResponse2ᚕᚖgithubᚗcomᚋiqbal
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCharacterResponse(ctx, sel, v[i])
+			ret[i] = ec.marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCharacterResponse(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3503,7 +3611,7 @@ func (ec *executionContext) marshalOCharacterResponse2ᚕᚖgithubᚗcomᚋiqbal
 	return ret
 }
 
-func (ec *executionContext) marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋgraphᚋmodelᚐCharacterResponse(ctx context.Context, sel ast.SelectionSet, v *model.CharacterResponse) graphql.Marshaler {
+func (ec *executionContext) marshalOCharacterResponse2ᚖgithubᚗcomᚋiqbalnzlsᚋgraphᚑqlᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCharacterResponse(ctx context.Context, sel ast.SelectionSet, v *model.CharacterResponse) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

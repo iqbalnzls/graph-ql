@@ -15,7 +15,8 @@ input CreateCharacterRequest {
 
 type Query {
   findByID(id:ID!): CharacterResponse
-  findAll(sortByID: String!): [CharacterResponse]
+  findAll(sortByID: String): [CharacterResponse]
+  findByName(name: String!): CharacterResponse
 }
 
 type Mutation {
