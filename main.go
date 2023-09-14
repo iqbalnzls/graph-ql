@@ -6,8 +6,6 @@ import (
 	inGrapghQL "github.com/iqbalnzls/graph-ql/internal/delivery/graph"
 )
 
-const defaultPort = "8080"
-
 func main() {
 	mux := http.NewServeMux()
 
